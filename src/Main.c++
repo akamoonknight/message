@@ -75,22 +75,21 @@ private:
 
 void printTrackingStats( std::initializer_list<TrackingStats> tss) {
   std::stringstream msg;
-  msg << "| Thread | Sum | Count | Avg | Min | Max | Percentiles | Outliers |\n";
-  msg << "| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |\n";
+  msg << "<table><tbody>\n";
+  msg << "<tr><th>Thread</th><th>Sum</th><th>Count</th><th>Avg</th><th>Min</th><th>Max</th><th>Percentiles</th><th>Outliers</th></tr>\n";
   for ( TrackingStats ts : tss) {
     if ( ts._entries.size() != 0) {
       ts._resizeEntries();
     }
 
-    msg << "| ";
-    msg << ts._id << " | " << ts._sum << " | " << ts._count << " | "
-        << (ts._sum / ts._count) << " | " << ts._min << " | " << ts._max << " | ";
+    msg << "<tr><td>" << ts._id << "</td><td>" << ts._sum << "</td><td>" << ts._count << "</td><td>"
+        << (ts._sum / ts._count) << "</td><td>" << ts._min << "</td><td>" << ts._max << "</td><td>";
 
     msg << "<ul>";
     for ( auto& ptiles : ts._ptile_arrays) {
       msg << "<li>" << (ptiles.first * 100.0) << "\%ile - " << (std::accumulate( ptiles.second.begin(), ptiles.second.end(), 0) / ptiles.second.size())  << "</li>";
     }
-    msg << "</ul> | ";
+    msg << "</ul></td><td>";
 
     std::reverse( ts._outliers.begin(), ts._outliers.end());
 
@@ -98,8 +97,10 @@ void printTrackingStats( std::initializer_list<TrackingStats> tss) {
     for ( auto& outlier : ts._outliers) {
       msg << "<li>" << outlier << "</li>";
     }
-    msg << "</ul> |\n";
+    msg << "</ul></td></tr>\n";
   }
+
+  msg << "</tbody></table>\n";
 
   std::cout << msg.str();
 }
@@ -170,9 +171,7 @@ int main() {
   PostSampler::_queue->init();
 
   std::stringstream msg;
-  msg << "Counter Queue:     " << Counter::_queue->name() << "\n"
-      << "PreSampler Queue:  " << PreSampler::_queue->name() << "\n"
-      << "PostSampler Queue: " << PostSampler::_queue->name() << "\n";
+  msg << "`" << Counter::_queue->name() << "`\n";
   std::cout << msg.str();
 
   TrackingStats ts1;
