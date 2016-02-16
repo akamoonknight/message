@@ -5,7 +5,6 @@
 #include <mutex>
 #include <future>
 #include <iostream>
-#include "QueuePool.h"
 #include "SpscQueue.h"
 
 template <typename T>
@@ -30,7 +29,6 @@ public:
     if ( _future.valid()) {
       _future.get();
     }
-    QueuePool<T>::give( _thread_queue);
   }
 
   std::string name() {
@@ -47,8 +45,7 @@ public:
 
   void _initialize_thread_queue() {
     if ( _idx == NUM_QUEUES) {
-      QueuePool<T>::get( &_thread_queue);
-
+      _thread_queue = new queue_t;
       rw_wrlock_t lock( _mutex);
       _thread_queues.push_back( _thread_queue);
     } else {

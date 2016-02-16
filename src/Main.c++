@@ -158,9 +158,6 @@ void r2( TrackingStats* ts) {
 }
 
 int main() {
-  QueuePool<Delta>::initialize();
-  QueuePool<Sample>::initialize();
-
   Counter::_queue = new Queue<Delta>;
   Counter::_queue->init();
 
@@ -190,9 +187,6 @@ int main() {
   delete Counter::_queue;
   delete PreSampler::_queue;
   delete PostSampler::_queue;
-
-  QueuePool<Delta>::shutdown();
-  QueuePool<Sample>::shutdown();
 
   return 0;
 }

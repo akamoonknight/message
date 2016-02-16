@@ -1,14 +1,16 @@
 # Counters with thread local storage
 
-Uses the idea of queues and RAII counters/samplers. Adds in thread local storage where each thread writes to its own thread local queue. A pointer to that local queue is placed into a vector which can then be read from and the entries can be placed into a more central queue and can then be sent somewhere else.
+Uses the idea of RAII counters/samplers and adds thread local storage. Every counter/sampler points to a static Queue object (just like the current implementation (sort of)). The difference is that that Queue internally contains a thread local queue, which gets initialized on the first produce call inside each thread. The thread local queues are placed onto a vector which can referenced by another thread for reading out and placing onto a unified queue which can then be published or whatever.
 
-The thread local storage does require some initialization on the first destruction of a counter/sampler. The QueuePool was created to attempt to decrease the time this initialization takes by having an initial set of queues that can be pulled from as opposed to requiring object creation. Currently there is not a way to give a queue back to the pool, need to set up a free list for indexes in the vector or some other type of implementation.
+The thread local storage initialization does take some time during the first produce on a counter/sampler. So some initialization is done during the base Queue creation (which needs to be assigned externally anyways) in order to decrease the time this initialization takes. An initial set of queues are created and then handed out to a thread when needed.
 
-SpscQueue is meant to be specialized for any queue you want to put into it. There is an alias named spsc_queue_t that can be changed so that multiple classes can see the same implementation of an spsc_queue.
+Currently there is not a way to give a queue back to the pool, need to set up a free list for indexes in the vector or some other type of implementation, should probably be a map of queues or some such.
+
+SpscQueue is meant to be specialized for any queue you want to put into it. There is an alias named spsc_queue_t that can be changed so that multiple classes can use the same implementation of a single producer single consumer queue.
 
 I compiled it with gcc 5, so there are some incompatibilities with gcc 4.7, but they are not unsolvable.
 
-Some sample results I got on my little Ubuntu machine at home:
+Hopefully can do some testing on the work boxes, but in the meantime some sample results I got on my little Ubuntu machine at home:
 
 `folly::ProducerConsumerQueue`
 <table><tbody>
