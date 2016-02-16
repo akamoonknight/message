@@ -21,6 +21,15 @@ public:
     }
   }
 
+  static void shutdown() {
+    rw_wrlock_t lock( _mutex);
+    for ( int i = 0; i < NUM_QUEUES; i++) {
+      delete _queues.at( i);
+    }
+
+    _queues.clear();
+  }
+
   static void get( queue_ptr_t* queue_ptr) {
     if ( _idx > NUM_QUEUES) {
       rw_wrlock_t lock( _mutex);

@@ -3,8 +3,8 @@
 
 #include <queue>
 #include <boost/lockfree/spsc_queue.hpp>
-#include "ProducerConsumerQueue.h"
-#include "readerwriterqueue.h"
+#include "spsc_impl/ProducerConsumerQueue.h"
+#include "spsc_impl/readerwriterqueue.h"
 
 // Empty SPSC Queue Class Definition
 template <typename T, typename Queue> class SpscQueue;

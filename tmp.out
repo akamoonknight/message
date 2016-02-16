@@ -1,0 +1,53 @@
+Counter Queue:     folly::ProducerConsumerQueue
+PreSampler Queue:  folly::ProducerConsumerQueue
+PostSampler Queue: folly::ProducerConsumerQueue
+| Category | Value |
+| ---: | :--- |
+| Thread | 139782594758400|
+| Sum | 10982399322|
+| Avg | 109|
+| Min | 82|
+| Max | 6909858|
+| 80%ile | 131|
+| 90%ile | 137|
+| 99%ile | 168|
+| 99.9%ile | 293|
+| 99.99%ile | 583|
+| 99.999%ile | 11801|
+| 99.9999%ile | 21968|
+| Outliers | |
+ |   | 64990|
+ |   | 65256|
+ |   | 90244|
+ |   | 99718|
+ |   | 100292|
+ |   | 136736|
+ |   | 281382|
+ |   | 836094|
+ |   | 915422|
+ |   | 6909858|
+| Category | Value |
+| ---: | :--- |
+| Thread | 139782586365696|
+| Sum | 12959871238|
+| Avg | 129|
+| Min | 100|
+| Max | 332008|
+| 80%ile | 147|
+| 90%ile | 159|
+| 99%ile | 211|
+| 99.9%ile | 329|
+| 99.99%ile | 2046|
+| 99.999%ile | 14198|
+| 99.9999%ile | 28591|
+| Outliers | |
+ |   | 69338|
+ |   | 73502|
+ |   | 97364|
+ |   | 127046|
+ |   | 130896|
+ |   | 150564|
+ |   | 253578|
+ |   | 285754|
+ |   | 289572|
+ |   | 332008|

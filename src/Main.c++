@@ -12,43 +12,23 @@
 #include "Queue.h"
 #include "Tracking.h"
 
-constexpr std::uint64_t LOOPS = 100000000;
+constexpr std::uint64_t LOOPS = 1000;
 constexpr std::uint64_t PRINT_MOD = LOOPS / 10;
 
 class TrackingStats
 {
 public:
+  static constexpr std::uint16_t NUM_OUTLIERS = 10;
+
+  void setId( std::thread::id id) {
+    _id = id;
+  }
+
   void addEntry( std::uint64_t entry) {
     _entries.push_back( entry);
     if ( (_entries.size() % PRINT_MOD) == 0) {
       _resizeEntries();     
     }
-  }
-
-  void printStats() {
-    if ( _entries.size() != 0) {
-      _resizeEntries();
-    }
-
-    std::stringstream msg;
-    msg << "Thread: " << std::this_thread::get_id() << "\n"
-        << "  Sum: " << _sum << "\n"
-        << "  Avg: " << (_sum / _count) << "\n"
-        << "  Min: " << _min << "\n"
-        << "  Max: " << _max << "\n";
-
-    for ( auto& ptiles : _ptile_arrays) {
-      msg << "  " << (ptiles.first * 100.0) << "\%ile: " << (std::accumulate( ptiles.second.begin(), ptiles.second.end(), 0) / ptiles.second.size())  << "\n";
-    }
-
-    std::reverse( _outliers.begin(), _outliers.end());
-    msg << "  Outliers:\n";
-
-    for ( auto& outlier : _outliers) {
-      msg << "    -> " << outlier << "\n";
-    }
-
-    std::cout << msg.str();
   }
 
   void _resizeEntries() {
@@ -62,12 +42,12 @@ public:
       _max = _entries.back();
     }
 
-    for ( int i = _entries.size() - 10; i < _entries.size(); i++) {
+    for ( int i = _entries.size() - NUM_OUTLIERS; i < _entries.size(); i++) {
       _outliers.push_back( _entries[ i ]);
     }
 
     std::sort( _outliers.begin(), _outliers.end(), std::greater<std::uint64_t>());
-    _outliers.resize( 10);
+    _outliers.resize( NUM_OUTLIERS);
 
     _ptile_arrays[ 0.80 ].push_back( _entries[ 0.80 * _entries.size() ]);
     _ptile_arrays[ 0.90 ].push_back( _entries[ 0.90 * _entries.size() ]);
@@ -81,20 +61,54 @@ public:
   }
 
 private:
+  friend void printTrackingStats( std::initializer_list<TrackingStats>);
   std::uint64_t _sum   = 0;
   std::uint64_t _count = 0;
   std::uint64_t _min   = 50000000;
   std::uint64_t _max   = 0;
 
+  std::thread::id                              _id;
   std::vector<std::uint64_t>                   _entries;
   std::map<double, std::vector<std::uint64_t>> _ptile_arrays;
   std::vector<std::uint64_t>                   _outliers;
 };
 
-void r1() {
+void printTrackingStats( std::initializer_list<TrackingStats> tss) {
+  std::stringstream msg;
+  msg << "| Thread | Sum | Count | Avg | Min | Max | Percentiles | Outliers |\n";
+  msg << "| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |\n";
+  for ( TrackingStats ts : tss) {
+    if ( ts._entries.size() != 0) {
+      ts._resizeEntries();
+    }
+
+    msg << "| ";
+    msg << ts._id << " | " << ts._sum << " | " << ts._count << " | "
+        << (ts._sum / ts._count) << " | " << ts._min << " | " << ts._max << " | ";
+
+    msg << "<ul>";
+    for ( auto& ptiles : ts._ptile_arrays) {
+      msg << "<li>" << (ptiles.first * 100.0) << "\%ile - " << (std::accumulate( ptiles.second.begin(), ptiles.second.end(), 0) / ptiles.second.size())  << "</li>";
+    }
+    msg << "</ul> | ";
+
+    std::reverse( ts._outliers.begin(), ts._outliers.end());
+
+    msg << "<ul>";
+    for ( auto& outlier : ts._outliers) {
+      msg << "<li>" << outlier << "</li>";
+    }
+    msg << "</ul> |\n";
+  }
+
+  std::cout << msg.str();
+}
+
+void r1( TrackingStats* ts) {
   constexpr int startNum = 5000;
-  TrackingStats ts;
   std::uint32_t aux;
+
+  ts->setId( std::this_thread::get_id());
 
   for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
     std::uint64_t start = __rdtscp( &aux);
@@ -106,7 +120,7 @@ void r1() {
       }
     }
     std::uint64_t end = __rdtscp( &aux);
-    ts.addEntry( end - start);
+    ts->addEntry( end - start);
 
     //if ( (i - startNum) % PRINT_MOD == 0) {
     //  std::cout << i << ": " << (end - start) << std::endl;
@@ -114,14 +128,13 @@ void r1() {
 
     //std::this_thread::sleep_for( std::chrono::microseconds( 5));
   }
-
-  ts.printStats();
 }
 
-void r2() {
+void r2( TrackingStats* ts) {
   constexpr int startNum = 3000;
-  TrackingStats ts;
   std::uint32_t aux;
+
+  ts->setId( std::this_thread::get_id());
 
   for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
     std::uint64_t start = __rdtscp( &aux);
@@ -133,7 +146,7 @@ void r2() {
       }
     }
     std::uint64_t end = __rdtscp( &aux);
-    ts.addEntry( end - start);
+    ts->addEntry( end - start);
 
     //if ( (i - startNum) % PRINT_MOD == 0) {
     //  std::cout << i << ": " << (end - start) << std::endl;
@@ -141,8 +154,6 @@ void r2() {
 
     //std::this_thread::sleep_for( std::chrono::microseconds( 10));
   }
-
-  ts.printStats();
 }
 
 int main() {
@@ -164,15 +175,25 @@ int main() {
       << "PostSampler Queue: " << PostSampler::_queue->name() << "\n";
   std::cout << msg.str();
 
-  std::thread t1( r1);
-  std::thread t2( r2);
+  TrackingStats ts1;
+  TrackingStats ts2;
+
+  std::thread t1( r1, &ts1);
+  std::thread t2( r2, &ts2);
 
   t1.join();
   t2.join();
 
+  printTrackingStats( {ts1, ts2});
+
   std::this_thread::sleep_for( std::chrono::milliseconds( 500));
 
   delete Counter::_queue;
+  delete PreSampler::_queue;
+  delete PostSampler::_queue;
+
+  QueuePool<Delta>::shutdown();
+  QueuePool<Sample>::shutdown();
 
   return 0;
 }
