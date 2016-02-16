@@ -20,6 +20,10 @@ class TrackingStats
 public:
   static constexpr std::uint16_t NUM_OUTLIERS = 10;
 
+  void setType( std::string type) {
+    _type = type;
+  }
+
   void setId( std::thread::id id) {
     _id = id;
   }
@@ -67,6 +71,7 @@ private:
   std::uint64_t _min   = 50000000;
   std::uint64_t _max   = 0;
 
+  std::string                                  _type;
   std::thread::id                              _id;
   std::vector<std::uint64_t>                   _entries;
   std::map<double, std::vector<std::uint64_t>> _ptile_arrays;
@@ -76,13 +81,13 @@ private:
 void printTrackingStats( std::initializer_list<TrackingStats> tss) {
   std::stringstream msg;
   msg << "<table><tbody>\n";
-  msg << "<tr><th>Thread</th><th>Sum</th><th>Count</th><th>Avg</th><th>Min</th><th>Max</th><th>Percentiles</th><th>Outliers</th></tr>\n";
+  msg << "<tr><th>Type</th><th>Thread</th><th>Sum</th><th>Count</th><th>Avg</th><th>Min</th><th>Max</th><th>Percentiles</th><th>Outliers</th></tr>\n";
   for ( TrackingStats ts : tss) {
     if ( ts._entries.size() != 0) {
       ts._resizeEntries();
     }
 
-    msg << "<tr><td>" << ts._id << "</td><td>" << ts._sum << "</td><td>" << ts._count << "</td><td>"
+    msg << "<tr><td>" << ts._type << "</td><td>" << ts._id << "</td><td>" << ts._sum << "</td><td>" << ts._count << "</td><td>"
         << (ts._sum / ts._count) << "</td><td>" << ts._min << "</td><td>" << ts._max << "</td><td>";
 
     msg << "<ul>";
@@ -105,7 +110,26 @@ void printTrackingStats( std::initializer_list<TrackingStats> tss) {
   std::cout << msg.str();
 }
 
+// Loop that uses pre samplers
 void r1( TrackingStats* ts) {
+  constexpr int startNum = 4000;
+  std::uint32_t aux;
+
+  ts->setId( std::this_thread::get_id());
+
+  for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
+    std::uint64_t start = __rdtscp( &aux);
+    {
+      Counter c( static_cast<std::uint16_t>(startNum + 2), Token{ static_cast<std::uint16_t>( i), static_cast<std::uint16_t>( i)});
+    }
+    std::uint64_t end = __rdtscp( &aux);
+    ts->addEntry( end - start);
+    //std::this_thread::sleep_for( std::chrono::microseconds( 10));
+  }
+}
+
+// Loop that uses pre samplers
+void r2( TrackingStats* ts) {
   constexpr int startNum = 5000;
   std::uint32_t aux;
 
@@ -114,25 +138,17 @@ void r1( TrackingStats* ts) {
   for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
     std::uint64_t start = __rdtscp( &aux);
     {
-      std::uint16_t i_cast = static_cast<std::uint16_t>( i);
-      Counter c( static_cast<std::uint16_t>(startNum + 1), Token{ i_cast, i_cast});
-      {
-        PreSampler c( static_cast<std::uint16_t>(startNum + 2), Token{ i_cast, i_cast});
-      }
+      PreSampler c( static_cast<std::uint16_t>(startNum + 2), Token{ static_cast<std::uint16_t>( i), static_cast<std::uint16_t>( i)});
     }
     std::uint64_t end = __rdtscp( &aux);
     ts->addEntry( end - start);
-
-    //if ( (i - startNum) % PRINT_MOD == 0) {
-    //  std::cout << i << ": " << (end - start) << std::endl;
-    //}
-
-    //std::this_thread::sleep_for( std::chrono::microseconds( 5));
+    //std::this_thread::sleep_for( std::chrono::microseconds( 10));
   }
 }
 
-void r2( TrackingStats* ts) {
-  constexpr int startNum = 3000;
+// Loop that uses post samplers
+void r3( TrackingStats* ts) {
+  constexpr int startNum = 6000;
   std::uint32_t aux;
 
   ts->setId( std::this_thread::get_id());
@@ -140,19 +156,10 @@ void r2( TrackingStats* ts) {
   for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
     std::uint64_t start = __rdtscp( &aux);
     {
-      std::uint16_t i_cast = static_cast<std::uint16_t>( i);
-      Counter c( static_cast<std::uint16_t>(startNum + 1), Token{ i_cast, i_cast});
-      {
-        Counter c( static_cast<std::uint16_t>(startNum + 2), Token{ i_cast, i_cast});
-      }
+      PostSampler c( static_cast<std::uint16_t>(startNum + 2), Token{ static_cast<std::uint16_t>( i), static_cast<std::uint16_t>( i)});
     }
     std::uint64_t end = __rdtscp( &aux);
     ts->addEntry( end - start);
-
-    //if ( (i - startNum) % PRINT_MOD == 0) {
-    //  std::cout << i << ": " << (end - start) << std::endl;
-    //}
-
     //std::this_thread::sleep_for( std::chrono::microseconds( 10));
   }
 }
@@ -171,16 +178,20 @@ int main() {
   msg << "`" << Counter::_queue->name() << "`\n";
   std::cout << msg.str();
 
-  TrackingStats ts1;
-  TrackingStats ts2;
+  TrackingStats ts1, ts2, ts3;
+  ts1.setType( "Counter");
+  ts2.setType( "PreSampler");
+  ts3.setType( "PostSampler");
 
   std::thread t1( r1, &ts1);
   std::thread t2( r2, &ts2);
+  std::thread t3( r3, &ts3);
 
   t1.join();
   t2.join();
+  t3.join();
 
-  printTrackingStats( {ts1, ts2});
+  printTrackingStats( {ts1, ts2, ts3});
 
   std::this_thread::sleep_for( std::chrono::milliseconds( 500));
 

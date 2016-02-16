@@ -9,6 +9,13 @@
 // Empty SPSC Queue Class Definition
 template <typename T, typename Queue> class SpscQueue;
 
+// SpscQueue specializations should contain the calls:
+//        std::string name() -> name of the type of underlying queue
+// ,      bool push( T const& t) -> returns true if t was placed onto the queue
+// and    bool pop( T& t) -> returns true if an object was taken
+//                           off the queue and put into t
+//   
+
 // ==============================
 // Standard Queue Specialization
 // ==============================
@@ -123,6 +130,6 @@ private:
 // ==================================
 
 template <typename T>
-using spsc_queue_t = SpscQueue<T, folly::ProducerConsumerQueue<T>>;
+using spsc_queue_t = SpscQueue<T, moodycamel::ReaderWriterQueue<T>>;
 
 #endif // __SPSC_QUEUE_H__

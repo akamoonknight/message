@@ -48,4 +48,8 @@ private:
   Sample _sample;
 };
 
+std::ostream& operator<<( std::ostream& out, Counter const& counter);
+std::ostream& operator<<( std::ostream& out, PreSampler const& preSampler);
+std::ostream& operator<<( std::ostream& out, PostSampler const& postSampler);
+
 #endif // __COUNTER_H__
