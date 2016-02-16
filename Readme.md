@@ -13,7 +13,37 @@ Some sample results I got on my little Ubuntu machine at home:
 Counter Queue:     folly::ProducerConsumerQueue
 PreSampler Queue:  folly::ProducerConsumerQueue
 PostSampler Queue: folly::ProducerConsumerQueue
-| Thread | Sum | Count | Avg | Min | Max | Percentiles | Outliers |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 140446856238848 | 210158 | 1000 | 210 | 153 | 4560 | <ul><li>80%ile - 178</li><li>90%ile - 183</li><li>99%ile - 2591</li><li>99.9%ile - 2591</li><li>99.99%ile - 2591</li><li>99.999%ile - 2591</li><li>99.9999%ile - 2591</li></ul> | <ul><li>2506</li><li>2509</li><li>2547</li><li>2579</li><li>2586</li><li>2599</li><li>2646</li><li>2755</li><li>3082</li><li>4560</li></ul> |
-| 140446847846144 | 209678 | 1000 | 209 | 179 | 3405 | <ul><li>80%ile - 199</li><li>90%ile - 206</li><li>99%ile - 1270</li><li>99.9%ile - 1270</li><li>99.99%ile - 1270</li><li>99.999%ile - 1270</li><li>99.9999%ile - 1270</li></ul> | <ul><li>243</li><li>269</li><li>1127</li><li>2470</li><li>2525</li><li>2532</li><li>2553</li><li>2684</li><li>2739</li><li>3405</li></ul> |
+<table>
+ <tbody>
+  <tr>
+   <th>Thread</th>
+   <th>Sum</th>
+   <th>Count</th>
+   <th>Avg</th>
+   <th>Min</th>
+   <th>Max</th>
+   <th>Percentiles</th>
+   <th>Outliers</th>
+  </tr>
+  <tr>
+   <td>140446856238848</td>
+   <td>210158</td>
+   <td>1000</td>
+   <td>210</td>
+   <td>153</td>
+   <td>4560</td>
+   <td><ul><li>80%ile - 178</li><li>90%ile - 183</li><li>99%ile - 2591</li><li>99.9%ile - 2591</li><li>99.99%ile - 2591</li><li>99.999%ile - 2591</li><li>99.9999%ile - 2591</li></ul></td>
+   <td><ul><li>2506</li><li>2509</li><li>2547</li><li>2579</li><li>2586</li><li>2599</li><li>2646</li><li>2755</li><li>3082</li><li>4560</li></ul></td>
+  </tr>
+  <tr>
+   <td>140446847846144</td>
+   <td>209678</td>
+   <td>1000</td>
+   <td>209</td>
+   <td>179</td>
+   <td>3405</td>
+   <td><ul><li>80%ile - 199</li><li>90%ile - 206</li><li>99%ile - 1270</li><li>99.9%ile - 1270</li><li>99.99%ile - 1270</li><li>99.999%ile - 1270</li><li>99.9999%ile - 1270</li></ul></td>
+   <td><ul><li>243</li><li>269</li><li>1127</li><li>2470</li><li>2525</li><li>2532</li><li>2553</li><li>2684</li><li>2739</li><li>3405</li></ul></td>
+  </tr>
+ </tbody>
+</table>
