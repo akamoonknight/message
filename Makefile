@@ -7,3 +7,6 @@ CFLAGS=-std=c++11 -O4
 
 all:
 	$(CC) $(CFLAGS) $(INCDIR) $(SRC) -o $(BIN) $(LIB)
+
+clean:
+	rm -rf bin/*
