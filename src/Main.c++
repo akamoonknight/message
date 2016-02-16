@@ -6,59 +6,93 @@
 #include <thread>
 #include <chrono>
 #include <sstream>
+#include <algorithm>
+#include <map>
 #include <x86intrin.h>
 #include "Queue.h"
 #include "Tracking.h"
+
+constexpr std::uint64_t LOOPS = 1000000;
+constexpr std::uint64_t PRINT_MOD = LOOPS / 10;
 
 class TrackingStats
 {
 public:
   void addEntry( std::uint64_t entry) {
     _entries.push_back( entry);
+    if ( (_entries.size() % PRINT_MOD) == 0) {
+      _resizeEntries();     
+    }
   }
 
   void printStats() {
-    std::vector<std::uint64_t> sorted_entries = getSortedEntries( _entries);
-    std::uint64_t sum = std::accumulate( sorted_entries.begin(), sorted_entries.end(), 0);
-    std::uint64_t avg = sum / sorted_entries.size();
-
-    std::uint64_t ptile_99 = sorted_entries[ 0.99 * sorted_entries.size() ];
-    std::uint64_t ptile_90 = sorted_entries[ 0.90 * sorted_entries.size() ];
+    if ( _entries.size() != 0) {
+      _resizeEntries();
+    }
 
     std::stringstream msg;
-    msg << "Sum: " << sum << " Avg: " << avg << " 90th \%ile: " << ptile_90
-        << " 99th \%ile: " << ptile_99 << " Max: " << sorted_entries.back() << "\n";
+    msg << "Thread: " << std::this_thread::get_id() << "\n"
+        << "  Sum: " << _sum << "\n"
+        << "  Avg: " << (_sum / _count) << "\n"
+        << "  Max: " << _max << "\n";
+
+    for ( auto& ptiles : _ptile_arrays) {
+      msg << "  " << (ptiles.first * 100.0) << "\%ile: " << (std::accumulate( ptiles.second.begin(), ptiles.second.end(), 0) / ptiles.second.size())  << "\n";
+    }
 
     std::cout << msg.str();
   }
 
-  std::vector<std::uint64_t> getSortedEntries( std::vector<std::uint64_t> entries) {
-    std::sort( std::begin( entries), std::end( entries));
-    return entries;
+  void _resizeEntries() {
+    std::sort( _entries.begin(), _entries.end());
+    _sum   += std::accumulate( _entries.begin(), _entries.end(), 0);
+    _count += _entries.size();
+    if ( _entries.back() > _max) {
+      _max = _entries.back();
+    }
+
+    _ptile_arrays[ 0.80 ].push_back( _entries[ 0.80 * _entries.size() ]);
+    _ptile_arrays[ 0.90 ].push_back( _entries[ 0.90 * _entries.size() ]);
+    _ptile_arrays[ 0.99 ].push_back( _entries[ 0.99 * _entries.size() ]);
+    _ptile_arrays[ 0.999 ].push_back( _entries[ 0.999 * _entries.size() ]);
+    _ptile_arrays[ 0.9999 ].push_back( _entries[ 0.9999 * _entries.size() ]);
+
+    _entries.clear();
   }
 
 private:
-  std::vector<std::uint64_t> _entries;
+  std::uint64_t _sum   = 0;
+  std::uint64_t _count = 0;
+  std::uint64_t _max   = 0;
+
+  std::vector<std::uint64_t>                   _entries;
+  std::map<double, std::vector<std::uint64_t>> _ptile_arrays;
 };
 
 void r1() {
   constexpr int startNum = 5000;
   TrackingStats ts;
-
   std::uint32_t aux;
-  for ( std::uint16_t i = startNum; i < startNum + 1000; i++) {
-    std::uint64_t start = __rdtscp( &aux);
+
+  for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
+    std::uint64_t start = __rdtsc();
     {
-      Counter c( startNum + 1, Token{ i, i});
+      std::uint16_t i_cast = static_cast<std::uint16_t>( i);
+      Counter c( static_cast<std::uint16_t>(startNum + 1), Token{ i_cast, i_cast});
       {
-        PreSampler c( startNum + 2, Token{ i, i});
+        PreSampler c( static_cast<std::uint16_t>(startNum + 2), Token{ i_cast, i_cast});
       }
     }
-    std::uint64_t end = __rdtscp( &aux);
+    std::uint64_t end = __rdtsc();
     ts.addEntry( end - start);
 
-    std::this_thread::sleep_for( std::chrono::microseconds( 50));
+    //if ( (i - startNum) % PRINT_MOD == 0) {
+    //  std::cout << i << ": " << (end - start) << std::endl;
+    //}
+
+    //std::this_thread::sleep_for( std::chrono::microseconds( 5));
   }
+
   ts.printStats();
 }
 
@@ -67,18 +101,23 @@ void r2() {
   TrackingStats ts;
   std::uint32_t aux;
 
-  for ( std::uint16_t i = startNum; i < startNum + 1000; i++) {
-    std::uint64_t start = __rdtscp( &aux);
+  for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
+    std::uint64_t start = __rdtsc();
     {
-      Counter c( startNum + 1, Token{ i, i});
+      std::uint16_t i_cast = static_cast<std::uint16_t>( i);
+      Counter c( static_cast<std::uint16_t>(startNum + 1), Token{ i_cast, i_cast});
       {
-        Counter c( startNum + 2, Token{ i, i});
+        Counter c( static_cast<std::uint16_t>(startNum + 2), Token{ i_cast, i_cast});
       }
     }
-    std::uint64_t end = __rdtscp( &aux);
+    std::uint64_t end = __rdtsc();
     ts.addEntry( end - start);
 
-    std::this_thread::sleep_for( std::chrono::microseconds( 100));
+    //if ( (i - startNum) % PRINT_MOD == 0) {
+    //  std::cout << i << ": " << (end - start) << std::endl;
+    //}
+
+    //std::this_thread::sleep_for( std::chrono::microseconds( 10));
   }
 
   ts.printStats();
