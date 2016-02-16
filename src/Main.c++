@@ -12,7 +12,7 @@
 #include "Queue.h"
 #include "Tracking.h"
 
-constexpr std::uint64_t LOOPS = 1000;
+constexpr std::uint64_t LOOPS = 100000000;
 constexpr std::uint64_t PRINT_MOD = LOOPS / 10;
 
 class TrackingStats
