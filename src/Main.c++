@@ -12,7 +12,7 @@
 #include "Queue.h"
 #include "Tracking.h"
 
-constexpr std::uint64_t LOOPS = 1000000;
+constexpr std::uint64_t LOOPS = 100000000;
 constexpr std::uint64_t PRINT_MOD = LOOPS / 10;
 
 class TrackingStats
@@ -34,10 +34,18 @@ public:
     msg << "Thread: " << std::this_thread::get_id() << "\n"
         << "  Sum: " << _sum << "\n"
         << "  Avg: " << (_sum / _count) << "\n"
+        << "  Min: " << _min << "\n"
         << "  Max: " << _max << "\n";
 
     for ( auto& ptiles : _ptile_arrays) {
       msg << "  " << (ptiles.first * 100.0) << "\%ile: " << (std::accumulate( ptiles.second.begin(), ptiles.second.end(), 0) / ptiles.second.size())  << "\n";
+    }
+
+    std::reverse( _outliers.begin(), _outliers.end());
+    msg << "  Outliers:\n";
+
+    for ( auto& outlier : _outliers) {
+      msg << "    -> " << outlier << "\n";
     }
 
     std::cout << msg.str();
@@ -47,15 +55,27 @@ public:
     std::sort( _entries.begin(), _entries.end());
     _sum   += std::accumulate( _entries.begin(), _entries.end(), 0);
     _count += _entries.size();
+    if ( _entries.back() < _min) {
+      _min = _entries.front();
+    }
     if ( _entries.back() > _max) {
       _max = _entries.back();
     }
+
+    for ( int i = _entries.size() - 10; i < _entries.size(); i++) {
+      _outliers.push_back( _entries[ i ]);
+    }
+
+    std::sort( _outliers.begin(), _outliers.end(), std::greater<std::uint64_t>());
+    _outliers.resize( 10);
 
     _ptile_arrays[ 0.80 ].push_back( _entries[ 0.80 * _entries.size() ]);
     _ptile_arrays[ 0.90 ].push_back( _entries[ 0.90 * _entries.size() ]);
     _ptile_arrays[ 0.99 ].push_back( _entries[ 0.99 * _entries.size() ]);
     _ptile_arrays[ 0.999 ].push_back( _entries[ 0.999 * _entries.size() ]);
     _ptile_arrays[ 0.9999 ].push_back( _entries[ 0.9999 * _entries.size() ]);
+    _ptile_arrays[ 0.99999 ].push_back( _entries[ 0.99999 * _entries.size() ]);
+    _ptile_arrays[ 0.999999 ].push_back( _entries[ 0.999999 * _entries.size() ]);
 
     _entries.clear();
   }
@@ -63,10 +83,12 @@ public:
 private:
   std::uint64_t _sum   = 0;
   std::uint64_t _count = 0;
+  std::uint64_t _min   = 50000000;
   std::uint64_t _max   = 0;
 
   std::vector<std::uint64_t>                   _entries;
   std::map<double, std::vector<std::uint64_t>> _ptile_arrays;
+  std::vector<std::uint64_t>                   _outliers;
 };
 
 void r1() {
