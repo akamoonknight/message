@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <ostream>
 
+// Copies of the base types
+
 struct Token
 {
   std::uint16_t port;

@@ -97,7 +97,7 @@ void r1() {
   std::uint32_t aux;
 
   for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
-    std::uint64_t start = __rdtsc();
+    std::uint64_t start = __rdtscp( &aux);
     {
       std::uint16_t i_cast = static_cast<std::uint16_t>( i);
       Counter c( static_cast<std::uint16_t>(startNum + 1), Token{ i_cast, i_cast});
@@ -105,7 +105,7 @@ void r1() {
         PreSampler c( static_cast<std::uint16_t>(startNum + 2), Token{ i_cast, i_cast});
       }
     }
-    std::uint64_t end = __rdtsc();
+    std::uint64_t end = __rdtscp( &aux);
     ts.addEntry( end - start);
 
     //if ( (i - startNum) % PRINT_MOD == 0) {
@@ -124,7 +124,7 @@ void r2() {
   std::uint32_t aux;
 
   for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
-    std::uint64_t start = __rdtsc();
+    std::uint64_t start = __rdtscp( &aux);
     {
       std::uint16_t i_cast = static_cast<std::uint16_t>( i);
       Counter c( static_cast<std::uint16_t>(startNum + 1), Token{ i_cast, i_cast});
@@ -132,7 +132,7 @@ void r2() {
         Counter c( static_cast<std::uint16_t>(startNum + 2), Token{ i_cast, i_cast});
       }
     }
-    std::uint64_t end = __rdtsc();
+    std::uint64_t end = __rdtscp( &aux);
     ts.addEntry( end - start);
 
     //if ( (i - startNum) % PRINT_MOD == 0) {
