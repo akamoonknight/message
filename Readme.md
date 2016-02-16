@@ -10,9 +10,7 @@ I compiled it with gcc 5, so there are some incompatibilities with gcc 4.7, but 
 
 Some sample results I got on my little Ubuntu machine at home:
 
-Counter Queue:     folly::ProducerConsumerQueue
-PreSampler Queue:  folly::ProducerConsumerQueue
-PostSampler Queue: folly::ProducerConsumerQueue
+`folly::ProducerConsumerQueue`
 <table>
  <tbody>
   <tr>
