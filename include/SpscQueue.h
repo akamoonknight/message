@@ -2,12 +2,28 @@
 #define __SPSC_QUEUE_H__
 
 #include <queue>
+#include <atomic>
 #include <boost/lockfree/spsc_queue.hpp>
 #include "spsc_impl/ProducerConsumerQueue.h"
 #include "spsc_impl/readerwriterqueue.h"
 
+struct DefaultQueueQualities
+{
+  static constexpr std::size_t Size = 1024;
+};
+
+class ToggleableObject
+{
+public:
+  bool isToggled() { return _toggled.load( std::memory_order_relaxed); }
+  bool toggle() { _toggled = !_toggled; }
+
+private:
+  std::atomic<bool> _toggled{ true};
+};
+
 // Empty SPSC Queue Class Definition
-template <typename T, typename Queue> class SpscQueue;
+template <typename T, typename Queue, typename QueueQualities = DefaultQueueQualities> class SpscQueue;
 
 // SpscQueue specializations should contain the calls:
 //        std::string name() -> name of the type of underlying queue
@@ -29,12 +45,15 @@ public:
   }
 
   bool push( T const& t) {
-    _queue.push( t);
-    return true;
+    if ( this->isToggled()) {
+      _queue.push( t);
+      return true;
+    }
+    return false;
   }
 
   bool pop( T& t) {
-    if ( !_queue.empty()) {
+    if ( !_queue.empty() && this->isToggled()) {
       t = _queue.front();
       _queue.pop();
       return true;
@@ -51,12 +70,12 @@ private:
 // Folly Producer Consumer Queue Specialization
 // =============================================
 
-template <typename T>
-class SpscQueue<T, folly::ProducerConsumerQueue<T>>
+template <typename T, typename QueueQualities>
+class SpscQueue<T, folly::ProducerConsumerQueue<T>, QueueQualities> : public ToggleableObject
 {
 public:
   SpscQueue()
-    : _queue( 1024)
+    : _queue( QueueQualities::Size)
   {}
 
   std::string name() {
@@ -64,11 +83,17 @@ public:
   }
 
   bool push( T const& t) {
-    return _queue.write( t);
+    if ( this->isToggled()) {
+      return _queue.write( t);
+    }
+    return false;
   }
 
   bool pop( T& t) {
-    return _queue.read( t);
+    if ( this->isToggled()) {
+      return _queue.read( t);
+    }
+    return false;
   }
 
 private:
@@ -79,12 +104,12 @@ private:
 // Boost Lockfree SPSC Queue Specialization
 // =========================================
 
-template <typename T>
-class SpscQueue<T, boost::lockfree::spsc_queue<T>>
+template <typename T, typename QueueQualities>
+class SpscQueue<T, boost::lockfree::spsc_queue<T>, QueueQualities> : public ToggleableObject
 {
 public:
   SpscQueue()
-    : _queue( 1024)
+    : _queue( QueueQualities::Size)
   {}
 
   std::string name() {
@@ -92,11 +117,17 @@ public:
   }
 
   bool push( T const& t) {
-    return _queue.push( t);
+    if ( this->isToggled()) {
+      return _queue.push( t);
+    }
+    return false;
   }
 
   bool pop( T& t) {
-    return _queue.pop( t);
+    if ( this->isToggled()) {
+      return _queue.pop( t);
+    }
+    return false;
   }
 private:
   boost::lockfree::spsc_queue<T> _queue;
@@ -106,20 +137,30 @@ private:
 // MoodyCamel ReaderWriter SPSC Queue Specialization
 // =========================================
 
-template <typename T>
-class SpscQueue<T, moodycamel::ReaderWriterQueue<T>>
+template <typename T, typename QueueQualities>
+class SpscQueue<T, moodycamel::ReaderWriterQueue<T>, QueueQualities> : public ToggleableObject
 {
 public:
+  SpscQueue()
+    : _queue( QueueQualities::Size)
+  {}
+
   std::string name() {
     return "moodycamel::ReaderWriterQueue";
   }
 
   bool push( T const& t) {
-    return _queue.try_enqueue( t);
+    if ( this->isToggled()) {
+      return _queue.try_enqueue( t);
+    }
+    return false;
   }
 
   bool pop( T& t) {
-    return _queue.try_dequeue( t);
+    if ( this->isToggled()) {
+      return _queue.try_dequeue( t);
+    }
+    return false;
   }
 private:
   moodycamel::ReaderWriterQueue<T> _queue;
@@ -130,6 +171,6 @@ private:
 // ==================================
 
 template <typename T>
-using spsc_queue_t = SpscQueue<T, moodycamel::ReaderWriterQueue<T>>;
+using spsc_queue_t = SpscQueue<T, folly::ProducerConsumerQueue<T>>;
 
 #endif // __SPSC_QUEUE_H__

@@ -73,8 +73,10 @@ public:
 
     _keep_running = true;
     _future = std::async( std::launch::async, [ this ]() {
+      std::uint32_t count = 0;
+
       while ( _keep_running.load( std::memory_order_relaxed)) {
-        std::this_thread::sleep_for( std::chrono::milliseconds( 1));
+        std::this_thread::sleep_for( std::chrono::microseconds( 100));
         T t;
 
         rw_rdlock_t lock( _mutex);
@@ -83,11 +85,14 @@ public:
 
           while ( thread_queue->pop( t)) {
             _queue->push( t);
+            count++;
           }
 
           lock.lock();
         }
       }
+
+      std::cout << "Count: " << count << std::endl;
     });
   }
 
