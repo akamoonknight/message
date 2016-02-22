@@ -47,6 +47,10 @@ public:
     _thread_queue->push( t);
   }
 
+  bool consume( T& t) {
+    return _queue->pop( t);
+  }
+
   // Either grabs a queue from the existing 'pool'
   // or creates a new queue and adds it to the
   // 'pool' if none are available.

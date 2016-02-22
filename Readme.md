@@ -12,7 +12,7 @@ I compiled it with gcc 5, so there are some incompatibilities with gcc 4.7, but 
 
 Hopefully can do some testing on the work boxes, but in the meantime some sample results I got on my little Ubuntu machine at home:
 
-*it should be noted that these times are from rdtsc calls wrapped around the creation/destruction of the defined type, not the times that result from the produce calls inside the objects*
+*It should be noted that these times are from rdtscp calls wrapped around the creation/destruction of the defined type, not the times that result from the produce calls inside the objects*
 
 `folly::ProducerConsumerQueue`
 <table><tbody>

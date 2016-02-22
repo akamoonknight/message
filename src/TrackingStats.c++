@@ -85,33 +85,53 @@ TrackingStats::printDefaultTrackingStats( std::vector<TrackingStats*> tss) {
 void
 TrackingStats::printTrackingStats( std::vector<TrackingStats*> tss) {
   std::stringstream msg;
-  msg << "<table><tbody>\n";
-  msg << "<tr><th>Type</th><th>Thread</th><th>Sum</th><th>Count</th><th>Avg</th><th>Min</th><th>Max</th><th>Percentiles</th><th>Outliers</th></tr>\n";
+  msg << "<table>\n"
+      << "  <tbody>\n"
+      << "    <tr>\n"
+      << "      <th>Type</th>\n"
+      << "      <th>Count</th>\n"
+      << "      <th>Avg</th>\n"
+      << "      <th>Min</th>\n"
+      << "      <th>Max</th>\n"
+      << "      <th>Percentiles</th>\n"
+      << "      <th>Outliers</th>\n"
+      << "    </tr>\n";
   for ( TrackingStats* tsp : tss) {
     TrackingStats& ts = *tsp;
     if ( ts._entries.size() != 0) {
       ts._resizeEntries();
     }
 
-    msg << "<tr><td>" << ts._type << "</td><td>" << ts._id << "</td><td>" << ts._sum << "</td><td>" << ts._count << "</td><td>"
-        << (ts._sum / ts._count) << "</td><td>" << ts._min << "</td><td>" << ts._max << "</td><td>";
-
-    msg << "<ul>";
+  msg << "    <tr>\n"
+      << "      <td>" << ts._type << "</td>\n"
+      << "      <td>" << ts._count << "</td>\n"
+      << "      <td>" << (ts._sum / ts._count) << "</td>\n"
+      << "      <td>" << ts._min << "</td>\n"
+      << "      <td>" << ts._max << "</td>\n"
+      << "      <td>\n"
+      << "        <ul>\n"
+      << "          ";
     for ( auto& ptiles : ts._ptile_arrays) {
-      msg << "<li>" << (ptiles.first * 100.0) << "\%ile - " << (std::accumulate( ptiles.second.begin(), ptiles.second.end(), 0) / ptiles.second.size())  << "</li>";
+  msg << "<li>" << (ptiles.first * 100.0) << "\%ile - " << (std::accumulate( ptiles.second.begin(), ptiles.second.end(), 0) / ptiles.second.size())  << "</li>";
     }
-    msg << "</ul></td><td>";
-
+  msg << "\n"
+      << "        </ul>\n"
+      << "      </td>\n"
+      << "      <td>\n"
+      << "        <ul>\n"
+      << "          ";
     std::reverse( ts._outliers.begin(), ts._outliers.end());
-
-    msg << "<ul>";
     for ( auto& outlier : ts._outliers) {
-      msg << "<li>" << outlier << "</li>";
+  msg << "<li>" << outlier << "</li>";
     }
-    msg << "</ul></td></tr>\n";
+  msg << "\n"
+      << "        </ul>\n"
+      << "      </td>\n"
+      << "    </tr>\n";
   }
 
-  msg << "</tbody></table>\n";
+  msg << "  </tbody>\n"
+      << "</table>\n";
 
   std::cout << msg.str();
 }
