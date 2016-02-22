@@ -15,24 +15,199 @@ Hopefully can do some testing on the work boxes, but in the meantime some sample
 *It should be noted that these times are from rdtscp calls wrapped around the creation/destruction of the defined type, not the times that result from the produce calls inside the objects*
 
 `folly::ProducerConsumerQueue`
-<table><tbody>
-<tr><th>Type</th><th>Thread</th><th>Sum</th><th>Count</th><th>Avg</th><th>Min</th><th>Max</th><th>Percentiles</th><th>Outliers</th></tr>
-<tr><td>Counter</td><td>140454114981632</td><td>162773521</td><td>1000000</td><td>162</td><td>72</td><td>23744</td><td><ul><li>80%ile - 204</li><li>95%ile - 264</li><li>99.99%ile - 3616</li></ul></td><td><ul><li>22504</li><li>22876</li><li>23744</li></ul></td></tr>
-<tr><td>PreSampler</td><td>140454106588928</td><td>130753455</td><td>1000000</td><td>130</td><td>44</td><td>44432</td><td><ul><li>80%ile - 176</li><li>95%ile - 248</li><li>99.99%ile - 1268</li></ul></td><td><ul><li>20648</li><li>22268</li><li>44432</li></ul></td></tr>
-<tr><td>PostSampler</td><td>140454098196224</td><td>153415621</td><td>1000000</td><td>153</td><td>42</td><td>155617</td><td><ul><li>80%ile - 192</li><li>95%ile - 264</li><li>99.99%ile - 4928</li></ul></td><td><ul><li>138604</li><li>145396</li><li>155617</li></ul></td></tr>
-</tbody></table>
+<table>
+  <tbody>
+    <tr>
+      <th>Type</th>
+      <th>Count</th>
+      <th>Avg</th>
+      <th>Min</th>
+      <th>Max</th>
+      <th>Percentiles</th>
+      <th>Outliers</th>
+    </tr>
+    <tr>
+      <td>Counter</td>
+      <td>1000000</td>
+      <td>186</td>
+      <td>72</td>
+      <td>143240</td>
+      <td>
+        <ul>
+          <li>80%ile - 226</li><li>95%ile - 349</li><li>99.99%ile - 12732</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>112781</li><li>135008</li><li>143240</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>PreSampler</td>
+      <td>1000000</td>
+      <td>149</td>
+      <td>44</td>
+      <td>23752</td>
+      <td>
+        <ul>
+          <li>80%ile - 192</li><li>95%ile - 296</li><li>99.99%ile - 2776</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>21056</li><li>21367</li><li>23752</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>PostSampler</td>
+      <td>1000000</td>
+      <td>156</td>
+      <td>42</td>
+      <td>30942</td>
+      <td>
+        <ul>
+          <li>80%ile - 200</li><li>95%ile - 304</li><li>99.99%ile - 2900</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>22164</li><li>23530</li><li>30942</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 `boost::lockfree::spsc_queue`
-<table><tbody>
-<tr><th>Type</th><th>Thread</th><th>Sum</th><th>Count</th><th>Avg</th><th>Min</th><th>Max</th><th>Percentiles</th><th>Outliers</th></tr>
-<tr><td>Counter</td><td>140384091735808</td><td>177924179</td><td>1000000</td><td>177</td><td>68</td><td>223516</td><td><ul><li>80%ile - 208</li><li>95%ile - 308</li><li>99.99%ile - 3380</li></ul></td><td><ul><li>21204</li><li>23392</li><li>223516</li></ul></td></tr>
-<tr><td>PreSampler</td><td>140384083343104</td><td>139148414</td><td>1000000</td><td>139</td><td>44</td><td>20864</td><td><ul><li>80%ile - 184</li><li>95%ile - 280</li><li>99.99%ile - 1908</li></ul></td><td><ul><li>20073</li><li>20732</li><li>20864</li></ul></td></tr>
-<tr><td>PostSampler</td><td>140384074950400</td><td>157932558</td><td>1000000</td><td>157</td><td>44</td><td>219976</td><td><ul><li>80%ile - 192</li><li>95%ile - 284</li><li>99.99%ile - 2924</li></ul></td><td><ul><li>165176</li><li>176360</li><li>219976</li></ul></td></tr>
-</tbody></table>
+<table>
+  <tbody>
+    <tr>
+      <th>Type</th>
+      <th>Count</th>
+      <th>Avg</th>
+      <th>Min</th>
+      <th>Max</th>
+      <th>Percentiles</th>
+      <th>Outliers</th>
+    </tr>
+    <tr>
+      <td>Counter</td>
+      <td>1000000</td>
+      <td>171</td>
+      <td>66</td>
+      <td>138316</td>
+      <td>
+        <ul>
+          <li>80%ile - 196</li><li>95%ile - 290</li><li>99.99%ile - 2932</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>121004</li><li>123996</li><li>138316</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>PreSampler</td>
+      <td>1000000</td>
+      <td>149</td>
+      <td>44</td>
+      <td>33859</td>
+      <td>
+        <ul>
+          <li>80%ile - 196</li><li>95%ile - 280</li><li>99.99%ile - 3908</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>26953</li><li>29852</li><li>33859</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>PostSampler</td>
+      <td>1000000</td>
+      <td>157</td>
+      <td>42</td>
+      <td>32406</td>
+      <td>
+        <ul>
+          <li>80%ile - 192</li><li>95%ile - 280</li><li>99.99%ile - 1598</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>19353</li><li>22096</li><li>32406</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 `moodycamel::ReaderWriterQueue`
-<table><tbody>
-<tr><th>Type</th><th>Thread</th><th>Sum</th><th>Count</th><th>Avg</th><th>Min</th><th>Max</th><th>Percentiles</th><th>Outliers</th></tr>
-<tr><td>Counter</td><td>140006612326144</td><td>185428944</td><td>1000000</td><td>185</td><td>72</td><td>25756</td><td><ul><li>80%ile - 221</li><li>95%ile - 305</li><li>99.99%ile - 2732</li></ul></td><td><ul><li>24381</li><li>25612</li><li>25756</li></ul></td></tr>
-<tr><td>PreSampler</td><td>140006603933440</td><td>147656822</td><td>1000000</td><td>147</td><td>44</td><td>108324</td><td><ul><li>80%ile - 192</li><li>95%ile - 285</li><li>99.99%ile - 2376</li></ul></td><td><ul><li>98916</li><li>105700</li><li>108324</li></ul></td></tr>
-<tr><td>PostSampler</td><td>140006471497472</td><td>167983885</td><td>1000000</td><td>167</td><td>40</td><td>31476</td><td><ul><li>80%ile - 212</li><li>95%ile - 304</li><li>99.99%ile - 3087</li></ul></td><td><ul><li>19716</li><li>21840</li><li>31476</li></ul></td></tr>
+<table>
+  <tbody>
+    <tr>
+      <th>Type</th>
+      <th>Count</th>
+      <th>Avg</th>
+      <th>Min</th>
+      <th>Max</th>
+      <th>Percentiles</th>
+      <th>Outliers</th>
+    </tr>
+    <tr>
+      <td>Counter</td>
+      <td>1000000</td>
+      <td>178</td>
+      <td>74</td>
+      <td>22396</td>
+      <td>
+        <ul>
+          <li>80%ile - 216</li><li>95%ile - 302</li><li>99.99%ile - 3904</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>20424</li><li>20924</li><li>22396</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>PreSampler</td>
+      <td>1000000</td>
+      <td>157</td>
+      <td>46</td>
+      <td>20237</td>
+      <td>
+        <ul>
+          <li>80%ile - 198</li><li>95%ile - 296</li><li>99.99%ile - 2508</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>19648</li><li>19992</li><li>20237</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>PostSampler</td>
+      <td>1000000</td>
+      <td>171</td>
+      <td>44</td>
+      <td>210289</td>
+      <td>
+        <ul>
+          <li>80%ile - 208</li><li>95%ile - 332</li><li>99.99%ile - 4682</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>128684</li><li>136808</li><li>210289</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>

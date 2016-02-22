@@ -171,6 +171,6 @@ private:
 // ==================================
 
 template <typename T>
-using spsc_queue_t = SpscQueue<T, folly::ProducerConsumerQueue<T>>;
+using spsc_queue_t = SpscQueue<T, moodycamel::ReaderWriterQueue<T>>;
 
 #endif // __SPSC_QUEUE_H__
