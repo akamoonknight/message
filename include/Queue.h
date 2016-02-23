@@ -5,10 +5,24 @@
 #include <mutex>
 #include <future>
 #include <iostream>
+#include <iomanip>
 #include "SpscQueue.h"
 
+class BitmaskedEnable
+{
+public:
+  bool isEnabled( std::uint16_t idx) { return (_bitmask.load( std::memory_order_relaxed) >> idx) & 1; }
+  void setBitmask( std::uint64_t bitmask) { _bitmask = bitmask; }
+  void setBit( std::uint16_t idx) { _bitmask |= 1ull << idx; }
+  void unsetBit( std::uint16_t idx) { _bitmask &= ~(1ull << idx); }
+  void printBitmask() { std::cout << "Bit: " << std::hex << _bitmask << std::dec << std::endl; }
+
+private:
+  std::atomic<std::uint64_t> _bitmask{ 0xFFFFFFFFFFFFFFFF };
+};
+
 template <typename T>
-class Queue
+class Queue : public BitmaskedEnable
 {
 public:
   using rw_mutex_t  = std::mutex; // TODO: Change these to use boost rw mutex impl
@@ -44,7 +58,9 @@ public:
       _initialize_thread_queue();
     }
 
-    _thread_queue->push( t);
+    if ( this->isEnabled( t.scope)) {
+      _thread_queue->push( t);
+    }
   }
 
   bool consume( T& t) {

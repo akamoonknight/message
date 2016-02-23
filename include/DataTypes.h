@@ -8,8 +8,8 @@
 
 struct Token
 {
-  std::uint16_t port;
-  std::uint64_t seq_num;
+  std::uint16_t port = 0;
+  std::uint64_t seq_num = 0;
 
   Token() {}
 
@@ -21,9 +21,9 @@ struct Token
 
 struct Delta
 {
-  std::uint16_t scope;
+  std::uint16_t scope = 0;
   Token         token;
-  std::uint32_t count;
+  std::uint32_t count = 0;
 
   Delta() {}
 
@@ -36,9 +36,9 @@ struct Delta
 
 struct Sample
 {
-  std::uint16_t scope;
+  std::uint16_t scope = 0;
   Token         token;
-  std::uint64_t sample;
+  std::uint64_t sample = 0;
 
   Sample() {}
 

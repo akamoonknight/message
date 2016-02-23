@@ -13,20 +13,23 @@
 #include "Tracking.h"
 #include "TrackingStats.h"
 
-constexpr std::uint64_t LOOPS = 1000000;
+constexpr std::uint64_t LOOPS = 100000;
 constexpr std::uint64_t PRINT_MOD = LOOPS / 1;
 
 template <typename TrackingType>
-void r1( TrackingStats* ts) {
-  constexpr int startNum = 4000;
+void r1( TrackingStats* ts, int startNum) {
   std::uint32_t aux;
 
   ts->setId( std::this_thread::get_id());
 
   for ( std::uint64_t i = startNum; i < startNum + LOOPS; i++) {
+    std::uint16_t scope = startNum % 64;
+    std::uint16_t port  = i;
+    std::uint64_t seqno = i;
+
     std::uint64_t start = __rdtscp( &aux);
     {
-      TrackingType t( static_cast<std::uint16_t>(startNum + 2), Token{ static_cast<std::uint16_t>( i), static_cast<std::uint16_t>( i)});
+      TrackingType t( scope, Token{ port, seqno });
     }
     std::uint64_t end = __rdtscp( &aux);
     ts->addEntry( end - start);
@@ -87,19 +90,19 @@ int main() {
     tss.push_back( ts2);
     tss.push_back( ts3);
 
-    threads.push_back( std::thread( r1<Counter>, ts1));
+    threads.push_back( std::thread( r1<Counter>, ts1, 44));
 
     cpu_set_t cpuset;
     CPU_ZERO( &cpuset);
     CPU_SET( 0, &cpuset);
     int rc = pthread_setaffinity_np( threads[ 0 ].native_handle(), sizeof( cpu_set_t), &cpuset);
 
-    threads.push_back( std::thread( r1<PreSampler>, ts2));
+    threads.push_back( std::thread( r1<PreSampler>, ts2, 53));
     CPU_ZERO( &cpuset);
     CPU_SET( 1, &cpuset);
     rc = pthread_setaffinity_np( threads[ 1 ].native_handle(), sizeof( cpu_set_t), &cpuset);
 
-    threads.push_back( std::thread( r1<PostSampler>, ts3));
+    threads.push_back( std::thread( r1<PostSampler>, ts3, 62));
     CPU_ZERO( &cpuset);
     CPU_SET( 2, &cpuset);
     rc = pthread_setaffinity_np( threads[ 2 ].native_handle(), sizeof( cpu_set_t), &cpuset);
